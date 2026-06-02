@@ -31,9 +31,12 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
-  // ONLY handle same-origin requests. Everything cross-origin (OSM tiles,
-  // Overpass, Nominatim, Gemini) passes through untouched to the network.
+  // ONLY handle same-origin requests. Everything cross-origin (OSM tiles)
+  // passes through untouched to the network.
   if (url.origin !== self.location.origin) return;
+
+  // Never cache API routes (Overpass/geocode/assistant proxies) — always live.
+  if (url.pathname.startsWith("/api/")) return;
 
   // Navigations: network-first, fall back to the cached shell only when offline.
   if (request.mode === "navigate") {

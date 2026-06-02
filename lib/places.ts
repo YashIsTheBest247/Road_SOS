@@ -14,28 +14,10 @@ export interface Place {
   emergency?: boolean;
   openingHours?: string;
 }
-const OVERPASS_ENDPOINTS = [
-  "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
-  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-];
-
-const REQUEST_TIMEOUT_MS = 15000;
-
-async function fetchWithTimeout(url: string, body: string): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    return await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timer);
-  }
-}
+// All third-party calls go through our own same-origin API routes (see
+// app/api/overpass and app/api/geocode) so browser shields, carrier blocking
+// and CORS can never break them in production.
+const CLIENT_TIMEOUT_MS = 28000;
 
 
 function buildCombinedQuery(lat: number, lng: number, radius: number): string {
@@ -80,22 +62,26 @@ interface OverpassElement {
   tags?: Record<string, string>;
 }
 
-// Run one combined query against ALL mirrors at once and take whichever
-// responds first with data. Racing (rather than trying mirrors one-by-one) is
-// far more resilient on slow mobile networks — a single slow or down mirror
-// can't stall the whole request. Throws only if every mirror fails.
+// Send the query to our own /api/overpass route, which races the mirrors
+// server-side and returns the elements. Same-origin → never blocked client-side.
 async function fetchElements(query: string): Promise<OverpassElement[]> {
-  const body = "data=" + encodeURIComponent(query);
-  const attempts = OVERPASS_ENDPOINTS.map(async (endpoint) => {
-    const res = await fetchWithTimeout(endpoint, body);
-    if (!res.ok) throw new Error(`Overpass ${res.status}`);
-    const data = (await res.json()) as { elements?: OverpassElement[]; remark?: string };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CLIENT_TIMEOUT_MS);
+  try {
+    const res = await fetch("/api/overpass", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Overpass proxy ${res.status}`);
+    const data = (await res.json()) as { elements?: OverpassElement[] };
     const elements = data.elements ?? [];
-    if (!elements.length) throw new Error(data.remark || "Empty Overpass result");
+    if (!elements.length) throw new Error("Empty Overpass result");
     return elements;
-  });
-  // First mirror to return a non-empty result wins.
-  return Promise.any(attempts);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // Radii (metres) tried in order. In dense areas the first radius already
@@ -180,29 +166,15 @@ export interface GeoContext {
   displayName?: string;
 }
 
-// Reverse-geocode the user's coordinates to a country (for emergency numbers).
-export async function reverseGeocode(
-  lat: number,
-  lng: number
-): Promise<GeoContext> {
+// Reverse-geocode via our own /api/geocode route (server sets the User-Agent
+// Nominatim requires, and same-origin avoids client-side blocking).
+export async function reverseGeocode(lat: number, lng: number): Promise<GeoContext> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), CLIENT_TIMEOUT_MS);
   try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`;
-    const res = await fetch(url, {
-      headers: { "Accept-Language": "en" },
-      signal: controller.signal,
-    });
-    if (!res.ok) throw new Error(`Nominatim ${res.status}`);
-    const data = await res.json();
-    return {
-      countryCode: data.address?.country_code?.toUpperCase(),
-      countryName: data.address?.country,
-      displayName:
-        [data.address?.city, data.address?.town, data.address?.village, data.address?.state]
-          .filter(Boolean)
-          .join(", ") || data.display_name,
-    };
+    const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`, { signal: controller.signal });
+    if (!res.ok) return {};
+    return (await res.json()) as GeoContext;
   } catch {
     return {};
   } finally {
