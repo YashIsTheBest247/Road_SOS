@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+/* ── Premium editorial theme ───────────────────────────────────────────────
+   Warm paper background, near-black ink, a single confident emergency red.
+   Heavy display type (Archivo) for headlines, clean body at lower weights. */
+@theme {
+  --color-paper: #ece6d9; /* warm cream page */
+  --color-paper-2: #e3dccb; /* deeper cream for the nav pill / wells */
+  --color-card: #faf8f2; /* near-white surfaces */
+  --color-ink: #16140f; /* near-black text */
+  --color-ink-soft: #3a352c;
+  --color-muted: #6b6557; /* secondary text */
+  --color-line: #d8d0bf; /* hairline borders on cream */
+  --color-line-strong: #c4bca8;
+  --color-emergency: #d63a2f; /* the one red */
+  --color-emergency-ink: #a82a22;
+  --color-accent: #1f6f6b; /* deep teal secondary */
+
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* Tailwind v4 no longer sets cursor:pointer on buttons by default — restore it
+   so all interactive controls feel clickable. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+label[for],
+summary {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Display headline helper — tight, black, editorial. */
+.display {
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+
+/* SOS / live marker pulse. */
+@keyframes rsos-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(214, 58, 47, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 16px rgba(214, 58, 47, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(214, 58, 47, 0);
+  }
+}
+
+/* Full-screen high-contrast beacon used in the SOS overlay. */
+#rsos-flash {
+  background: #ffffff;
+  transition: background 80ms linear;
+}
+body[data-flash-state="a"] #rsos-flash {
+  background: #ffffff;
+}
+body[data-flash-state="b"] #rsos-flash {
+  background: #d63a2f;
+}
+
+/* Leaflet should sit cleanly inside the cream theme. */
+.leaflet-container {
+  background: #e3dccb;
+  font: inherit;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #faf8f2;
+  color: #16140f;
+  box-shadow: 0 8px 24px rgba(20, 20, 15, 0.18);
+}
+
+/* Thin custom scrollbars for the premium feel. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
