@@ -1,6 +1,7 @@
 
 export type CategoryId =
   | "hospital"
+  | "ambulance"
   | "police"
   | "pharmacy"
   | "fire"
@@ -43,6 +44,18 @@ export const CATEGORIES: ServiceCategory[] = [
       ["healthcare", "clinic"],
       ["amenity", "doctors"],
       ["emergency", "yes"],
+    ],
+  },
+  {
+    id: "ambulance",
+    label: "Ambulance Stations",
+    short: "Ambulance",
+    emoji: "🚑",
+    color: "#e11d48",
+    priority: true,
+    osm: [
+      ["emergency", "ambulance_station"],
+      ["amenity", "ambulance_station"],
     ],
   },
   {

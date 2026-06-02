@@ -295,7 +295,7 @@ export default function Home() {
           {/* Stat strip */}
           <dl className="mt-12 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
             {[
-              ["8", "Service types"],
+              ["9", "Service types"],
               ["50+", "Countries"],
               ["Live", "Map data"],
               ["AI+Offline", "First-aid help"],
