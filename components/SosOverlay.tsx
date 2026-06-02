@@ -17,9 +17,11 @@ export default function SosOverlay({ open, onClose, lat, lng, ambulance, placeNa
   const [shared, setShared] = useState<string | null>(null);
 
   // Web Audio siren — synthesised at runtime (no audio file), so it works fully
-  // offline. An LFO sweeps the oscillator pitch up and down like a real siren.
+  // offline. Two detuned oscillators run through a limiter (DynamicsCompressor)
+  // and a maxed master gain so it's as LOUD as the device will allow. A website
+  // can't raise the phone's hardware volume, but this drives the siren to full.
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const sirenRef = useRef<{ osc: OscillatorNode; lfo: OscillatorNode; gain: GainNode } | null>(null);
+  const sirenRef = useRef<{ nodes: OscillatorNode[]; gain: GainNode } | null>(null);
 
   function startSiren() {
     if (sirenRef.current) return;
@@ -31,25 +33,46 @@ export default function SosOverlay({ open, onClose, lat, lng, ambulance, placeNa
       audioCtxRef.current = ctx;
       if (ctx.state === "suspended") ctx.resume();
 
-      const osc = ctx.createOscillator();
-      osc.type = "sawtooth";
-      osc.frequency.value = 760; // centre pitch
+      // Master gain → maxed.
+      const gain = ctx.createGain();
+      gain.gain.value = 0.0001;
+      gain.gain.exponentialRampToValueAtTime(1.0, ctx.currentTime + 0.06);
 
-      const lfo = ctx.createOscillator(); // sweeps the pitch
+      // Limiter so the maxed gain stays loud without harsh clipping.
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -6;
+      limiter.knee.value = 0;
+      limiter.ratio.value = 20;
+      limiter.attack.value = 0.002;
+      limiter.release.value = 0.2;
+
+      gain.connect(limiter).connect(ctx.destination);
+
+      // Pitch sweep shared by both oscillators.
+      const lfo = ctx.createOscillator();
       lfo.type = "sine";
       lfo.frequency.value = 0.6; // ~1.6s per up-down cycle
       const lfoGain = ctx.createGain();
-      lfoGain.gain.value = 360; // sweep depth (Hz)
-      lfo.connect(lfoGain).connect(osc.frequency);
+      lfoGain.gain.value = 380; // sweep depth (Hz)
+      lfo.connect(lfoGain);
 
-      const gain = ctx.createGain();
-      gain.gain.value = 0.0001;
-      gain.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime + 0.08);
+      const osc1 = ctx.createOscillator();
+      osc1.type = "sawtooth";
+      osc1.frequency.value = 780;
+      const osc2 = ctx.createOscillator();
+      osc2.type = "square";
+      osc2.frequency.value = 780;
+      osc2.detune.value = 7; // slight detune → fuller, louder tone
 
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
+      lfoGain.connect(osc1.frequency);
+      lfoGain.connect(osc2.frequency);
+      osc1.connect(gain);
+      osc2.connect(gain);
+
       lfo.start();
-      sirenRef.current = { osc, lfo, gain };
+      osc1.start();
+      osc2.start();
+      sirenRef.current = { nodes: [lfo, osc1, osc2], gain };
     } catch {
       /* audio unsupported — non-fatal */
     }
@@ -62,12 +85,13 @@ export default function SosOverlay({ open, onClose, lat, lng, ambulance, placeNa
     try {
       s.gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
       setTimeout(() => {
-        try {
-          s.osc.stop();
-          s.lfo.stop();
-        } catch {
-          /* already stopped */
-        }
+        s.nodes.forEach((n) => {
+          try {
+            n.stop();
+          } catch {
+            /* already stopped */
+          }
+        });
       }, 150);
     } catch {
       /* ignore */

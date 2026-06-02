@@ -17,6 +17,10 @@ export const metadata: Metadata = {
     "Find the nearest hospitals, police, ambulances, towing and tyre repair during a road accident — anywhere in the world. Works offline with built-in emergency numbers and an AI first-aid assistant.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "RoadSoS" },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon-180.png",
+  },
 };
 
 export const viewport: Viewport = {

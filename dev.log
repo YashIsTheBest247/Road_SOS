@@ -8,3 +8,10 @@
 - Environments: .env.local
 ✓ Ready in 771ms
 
+ GET /api/geocode?lat=28.6139&lng=77.209 200 in 939ms (next.js: 675ms, application-code: 264ms)
+ POST /api/overpass 200 in 1004ms (next.js: 197ms, application-code: 808ms)
+ GET / 200 in 873ms (next.js: 442ms, application-code: 431ms)
+ GET /manifest.webmanifest 200 in 131ms (next.js: 103ms, application-code: 28ms)
+ GET / 200 in 135ms (next.js: 9ms, application-code: 127ms)
+ GET /manifest.webmanifest 200 in 32ms (next.js: 14ms, application-code: 18ms)
+✓ Compiled in 86ms

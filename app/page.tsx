@@ -15,6 +15,7 @@ import FirstAidAssistant from "@/components/FirstAidAssistant";
 import AccidentChecklist from "@/components/AccidentChecklist";
 import FloatingChat from "@/components/FloatingChat";
 import LocationModal from "@/components/LocationModal";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const MapView = dynamic(() => import("@/components/MapView"), {
   ssr: false,
@@ -306,6 +307,8 @@ export default function Home() {
             ))}
           </dl>
         </section>
+
+        <InstallPrompt />
 
         {offline && cacheAt && (
           <div className="mt-8 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-800">
