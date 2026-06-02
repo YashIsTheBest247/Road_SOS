@@ -20,7 +20,7 @@ const OVERPASS_ENDPOINTS = [
   "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ];
 
-const REQUEST_TIMEOUT_MS = 12000;
+const REQUEST_TIMEOUT_MS = 15000;
 
 async function fetchWithTimeout(url: string, body: string): Promise<Response> {
   const controller = new AbortController();
@@ -80,32 +80,22 @@ interface OverpassElement {
   tags?: Record<string, string>;
 }
 
-// Run one combined query, trying each mirror once. A complete (no-remark)
-// result wins immediately; otherwise the largest partial result is returned.
-// Throws only if every mirror fails.
+// Run one combined query against ALL mirrors at once and take whichever
+// responds first with data. Racing (rather than trying mirrors one-by-one) is
+// far more resilient on slow mobile networks — a single slow or down mirror
+// can't stall the whole request. Throws only if every mirror fails.
 async function fetchElements(query: string): Promise<OverpassElement[]> {
-  let lastError: unknown;
-  let best: OverpassElement[] | null = null;
-
-  for (const endpoint of OVERPASS_ENDPOINTS) {
-    try {
-      const res = await fetchWithTimeout(endpoint, "data=" + encodeURIComponent(query));
-      if (!res.ok) throw new Error(`Overpass ${res.status}`);
-      const data = (await res.json()) as { elements?: OverpassElement[]; remark?: string };
-      const elements = data.elements ?? [];
-      const partial = !!data.remark && /timed out|runtime error/i.test(data.remark);
-
-      if (elements.length && !partial) return elements; // complete — done
-      if (elements.length && (!best || elements.length > best.length)) best = elements;
-      if (!elements.length) throw new Error(data.remark || "Empty Overpass result");
-    } catch (err) {
-      lastError = err;
-      // try next mirror
-    }
-  }
-
-  if (best) return best; // best partial beats nothing
-  throw lastError ?? new Error("All Overpass endpoints failed");
+  const body = "data=" + encodeURIComponent(query);
+  const attempts = OVERPASS_ENDPOINTS.map(async (endpoint) => {
+    const res = await fetchWithTimeout(endpoint, body);
+    if (!res.ok) throw new Error(`Overpass ${res.status}`);
+    const data = (await res.json()) as { elements?: OverpassElement[]; remark?: string };
+    const elements = data.elements ?? [];
+    if (!elements.length) throw new Error(data.remark || "Empty Overpass result");
+    return elements;
+  });
+  // First mirror to return a non-empty result wins.
+  return Promise.any(attempts);
 }
 
 // Radii (metres) tried in order. In dense areas the first radius already

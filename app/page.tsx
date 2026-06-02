@@ -256,7 +256,7 @@ export default function Home() {
       <main id="top" className="mx-auto max-w-5xl scroll-mt-24 px-4 pb-16">
         {/* ── HERO ─────────────────────────────────────────────── */}
         <section className="pt-3 sm:pt-5">
-          <h1 className="display text-[3.4rem] leading-[0.9] sm:text-[5.5rem] lg:text-[7rem]">
+          <h1 className="display text-[2.3rem] leading-[0.95] sm:text-[5.5rem] sm:leading-[0.9] lg:text-[7rem]">
             Found fast.
             <br />
             Saved faster<span className="text-emergency">.</span>
@@ -340,12 +340,31 @@ export default function Home() {
         {error && (
           <div className="mt-4 rounded-2xl border border-emergency/40 bg-emergency/10 p-4 text-sm text-emergency-ink">
             <p>{error}</p>
-            <button
-              onClick={() => locate(true)}
-              className="mt-2 rounded-full bg-emergency px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-white"
-            >
-              Use demo location
-            </button>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {coords ? (
+                <button
+                  onClick={() => loadServices(coords.lat, coords.lng)}
+                  disabled={busy}
+                  className="rounded-full bg-emergency px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-white disabled:opacity-60"
+                >
+                  {busy ? "Retrying…" : "Try again"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => locate(false)}
+                  disabled={busy}
+                  className="rounded-full bg-emergency px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-white disabled:opacity-60"
+                >
+                  Try again
+                </button>
+              )}
+              <button
+                onClick={() => locate(true)}
+                className="rounded-full border border-emergency/50 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-emergency-ink"
+              >
+                Use demo location
+              </button>
+            </div>
           </div>
         )}
 
@@ -391,7 +410,7 @@ export default function Home() {
               <button
                 key={id}
                 onClick={() => selectTab(id)}
-                className={`flex-1 rounded-full py-2.5 text-sm font-bold uppercase tracking-wide transition ${
+                className={`flex-1 whitespace-nowrap rounded-full px-1 py-2.5 text-[0.7rem] font-bold uppercase tracking-wide transition sm:text-sm sm:tracking-wide ${
                   tab === id ? "bg-ink text-paper shadow-sm" : "text-muted hover:text-ink"
                 }`}
               >
