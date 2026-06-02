@@ -299,9 +299,9 @@ export default function Home() {
               ["Live", "Map data"],
               ["AI+Offline", "First-aid help"],
             ].map(([n, l]) => (
-              <div key={l} className="bg-paper px-4 py-5">
-                <dt className="display text-3xl text-ink sm:text-4xl">{n}</dt>
-                <dd className="eyebrow mt-1 text-muted">{l}</dd>
+              <div key={l} className="bg-paper px-3 py-5 sm:px-4">
+                <dt className="display text-2xl leading-none text-ink sm:text-4xl">{n}</dt>
+                <dd className="eyebrow mt-1.5 text-muted">{l}</dd>
               </div>
             ))}
           </dl>

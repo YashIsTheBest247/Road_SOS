@@ -40,7 +40,7 @@ export default function EmergencyBar({ countryCode, countryName, locationKnown, 
           {name}
         </span>
       </div>
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <CallChip label="Ambulance" number={e.ambulance} accent="#d63a2f" />
         <CallChip label="Police" number={e.police} accent="#1d4ed8" />
         <CallChip label="Fire" number={e.fire} accent="#ea580c" />

@@ -572,3 +572,16 @@ Incoming: [(demo = false)=>{
  GET /manifest.webmanifest 200 in 12ms (next.js: 5ms, application-code: 7ms)
  GET / 200 in 47ms (next.js: 3ms, application-code: 44ms)
  GET /manifest.webmanifest 200 in 10ms (next.js: 5ms, application-code: 5ms)
+✓ Compiled in 42ms
+ GET / 200 in 160ms (next.js: 53ms, application-code: 107ms)
+ GET / 200 in 160ms (next.js: 79ms, application-code: 81ms)
+ GET / 200 in 55ms (next.js: 7ms, application-code: 48ms)
+ GET /manifest.webmanifest 200 in 43ms (next.js: 36ms, application-code: 7ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 27ms
+ GET /manifest.webmanifest 200 in 182ms (next.js: 175ms, application-code: 7ms)
+ GET / 200 in 281ms (next.js: 56ms, application-code: 225ms)
+ GET / 200 in 194ms (next.js: 33ms, application-code: 161ms)
+ GET / 200 in 197ms (next.js: 9ms, application-code: 188ms)
+ GET /manifest.webmanifest 200 in 14ms (next.js: 7ms, application-code: 7ms)
+ GET /manifest.webmanifest 200 in 10ms (next.js: 3ms, application-code: 6ms)
